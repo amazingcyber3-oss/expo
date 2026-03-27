@@ -1,10 +1,10 @@
 // Copyright 2025-present 650 Industries. All rights reserved.
 
 /**
- Base class for optimized synchronous function definitions.
- This is used by the `@OptimizedFunction` macro to generate subclasses with specific type signatures.
+ Optimized synchronous function definition.
+ This is used by the `@OptimizedFunction` macro with specific type signatures.
  */
-open class BaseOptimizedSyncFunctionDefinition: AnySyncFunctionDefinition, @unchecked Sendable {
+public struct OptimizedSyncFunctionDefinition: AnySyncFunctionDefinition, @unchecked Sendable {
   public let name: String
   public let typeEncoding: String
   public let argsCount: Int
@@ -58,11 +58,27 @@ open class BaseOptimizedSyncFunctionDefinition: AnySyncFunctionDefinition, @unch
       body: block
     )
   }
+
+  // MARK: - Descriptor Factory
+
+  @inline(__always)
+  public static func createDescriptor(
+    typeEncoding: String,
+    argsCount: Int,
+    block: AnyObject
+  ) -> OptimizedFunctionDescriptor {
+    return OptimizedFunctionDescriptor(
+      typeEncoding: typeEncoding,
+      argsCount: argsCount,
+      block: block
+    )
+  }
 }
 
 /**
  A lightweight descriptor carrying the optimized closure metadata.
- The JS-facing name is supplied separately via the `Function("name", descriptor)` overload.
+ The JS-facing name is supplied separately via the `Function("name", descriptor)`
+ or `AsyncFunction("name", descriptor)` overload.
  */
 public struct OptimizedFunctionDescriptor {
   public let typeEncoding: String
@@ -85,7 +101,7 @@ public func _createOptimizedFunctionDescriptor(
   argsCount: Int,
   block: AnyObject
 ) -> OptimizedFunctionDescriptor {
-  return OptimizedFunctionDescriptor(
+  return OptimizedSyncFunctionDefinition.createDescriptor(
     typeEncoding: typeEncoding,
     argsCount: argsCount,
     block: block
